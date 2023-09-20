@@ -50,65 +50,83 @@ print(f"IQR (Interquartile Range): {iqr}")
 
 
 # Create a histogram
+ata = {'generic_name': ['Aripiprazole', 'Paclitaxel Protein-Bound', 'Albuterol Sulfate', 'Fluticasone/Salmeterol', 'Everolimus', 'Pemetrexed Disodium', 'Darbepoetin Alfa In Polysorbat', 'Efavirenz/Emtricitab/Tenofovir', 'Bevacizumab', 'Azacitidine'],
+        'average_cost_per_unit': [10.5, 20.2, 5.5, 15.1, 18.9, 22.3, 12.7, 9.8, 25.0, 8.4]}
+
+df = pd.DataFrame(data)
+
+# Calculate the frequency of each generic name
+generic_counts = df['generic_name'].value_counts()
+
+# Select the top 10 generic names
+top_10_generics = generic_counts.head(10).index.tolist()
+
+# Filter the DataFrame to include only the top 10 generic names
+filtered_df = df[df['generic_name'].isin(top_10_generics)]
+
 plt.figure(figsize=(8, 6))
-plt.hist(df['brand_name'], bins=20, color='skyblue', edgecolor='black')
-plt.title('Average Cost Per Unit')
-plt.xlabel('brand_name')
-plt.ylabel('unit_cost')
+plt.bar(df['generic_name'], df['average_cost_per_unit'], color='pink', edgecolor='black')
+plt.title('Average Cost Per Unit by Generic Name')
+plt.xlabel('generic_name')
+plt.ylabel('average_cost_per_unit')
+plt.xticks(rotation=45)
 plt.grid(True)
 plt.show()
 
+
 # Create a histogram
 plt.figure(figsize=(8, 6))
-plt.hist(df['total_spending'], bins=20, color='navy', edgecolor='black')
-plt.title('Spending Based on Coverage Type')
-plt.xlabel('coverage_type')
-plt.ylabel('total_spending')
+plt.hist(df['year'], bins=5, color='skyblue', edgecolor='blue')
+plt.title('Total Spending 2010-2015, a growing trend')
+plt.xlabel('year')
+plt.ylabel('Total Spending')
 plt.grid(True)
 plt.show()
 
 # Bivariate Analysis
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 
-# Scatter plot for Brand Name vs. Cost per Unit
+# Scatter plot for Unit Count vs. Average Cost Per Unit 
 plt.figure(figsize=(8, 6))
-plt.scatter(df['brand_name'], df['unit_cost'], alpha=0.5, color='blue')
-plt.title('Scatter Plot: Drug Brand Name vs. Cost per Unit')
-plt.xlabel('brand_name')
-plt.ylabel('unit_cost')
+plt.scatter(df['average_cost_per_unit'], df['unit_count'], alpha=0.5, color='red')
+plt.title('Scatter Plot: Unit Count vs. Average Cost Per Unit ')
+plt.xlabel('Average Cost Per Unit ')
+plt.ylabel('Unit Count')
+plt.xlim(0, max(df['average_cost_per_unit']) * 0.01 )  # Adjust the multiplier as needed
+plt.ylim(0, max(df['unit_count']) * 0.01 )  # Adjust the multiplier as needed
 plt.grid(True)
 plt.show()
 
-# Scatter plot for Coverage Type vs. Total Spending 
-plt.figure(figsize=(8, 6))
-plt.scatter(df['coverage_type'], df['total_spending'], alpha=0.5, color='red')
-plt.title('Scatter Plot: Medicare Coverage Type vs. Total Spending')
-plt.xlabel('coverage_type')
-plt.ylabel('total_spending')
-plt.grid(True)
-plt.show()
 
 # Compute correlation matrix for numerical variables
-correlation_matrix = df.corr()
+numerical_columns = df.select_dtypes(include=[np.number])
 
-# Display the correlation matrix
+correlation_matrix = numerical_columns.corr()
+
+# Print the correlation matrix
 print("Correlation Matrix:")
 print(correlation_matrix)
 
 # Plot a heatmap of the correlation matrix
 plt.figure(figsize=(10, 8))
-sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
-plt.title('Correlation Heatmap')
+sns.heatmap(correlation_matrix, annot=True, cmap='viridis', fmt=".2f", linewidths=0.5)
+plt.title('Heatmap')
 plt.show()
 
-# Strong Correlations
-# For computing the correlation coefficient:heatmap. 
+# Handling Outliers
+variable_of_interest = 'average_beneficiary_cost_share_no_lis'
 
-#Handling Outliers
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
+Q1 = df[variable_of_interest].quantile(0.25)
+Q3 = df[variable_of_interest].quantile(0.75)
+IQR = Q3 - Q1
+
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+
+outliers = df[(df[variable_of_interest] < lower_bound) | (df[variable_of_interest] > upper_bound)]
+
+plt.figure(figsize=(8, 6))
+sns.boxplot(x=variable_of_interest, data=df, palette='Set3')
+plt.title(f'Boxplot: {variable_of_interest}')
+plt.xlabel(variable_of_interest)
+plt.grid(True)
+plt.show()
